@@ -76,3 +76,27 @@ def refine_sequence(seq):
 
 sequence = refine_sequence(sequence)
 
+def total_continuity(seq):
+    total = 0
+    for i in range(1, len(seq)):
+        total += calc_mse(gray_list[seq[i - 1]], gray_list[seq[i]])
+    return total
+
+forward_val = total_continuity(sequence)
+backward_val = total_continuity(sequence[::-1])
+
+if backward_val < forward_val:
+    sequence.reverse()
+    print("🔁 Reversed the order for smoother playback.")
+else:
+    print("➡ Using forward direction.")
+
+print("Writing the output video...")
+fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+writer = cv2.VideoWriter(output_file, fourcc, video_fps, (frame_w, frame_h))
+
+for idx in sequence:
+    writer.write(all_frames[idx])
+
+writer.release()
+print(f"🎉 Video reconstruction completed! Saved as {output_file}")
