@@ -45,3 +45,34 @@ for i in tqdm(range(num_frames)):
         similarity[i][j] = diff
         similarity[j][i] = diff
 
+np.fill_diagonal(similarity, np.inf)
+
+mean_diff = np.mean(similarity, axis=1)
+first_frame = np.argmax(mean_diff)
+print(f"Possible first frame: {first_frame}")
+
+used = set([first_frame])
+sequence = [first_frame]
+
+print("Reordering frames...")
+for _ in tqdm(range(num_frames - 1)):
+    last = sequence[-1]
+    next_frame = np.argmin(similarity[last])
+    while next_frame in used:
+        similarity[last][next_frame] = np.inf
+        next_frame = np.argmin(similarity[last])
+    sequence.append(next_frame)
+    used.add(next_frame)
+
+def refine_sequence(seq):
+    fixed = seq.copy()
+    for i in range(1, len(fixed) - 1):
+        prev = gray_list[fixed[i - 1]]
+        curr = gray_list[fixed[i]]
+        nxt = gray_list[fixed[i + 1]]
+        if calc_mse(prev, nxt) < calc_mse(prev, curr):
+            fixed[i], fixed[i + 1] = fixed[i + 1], fixed[i]
+    return fixed
+
+sequence = refine_sequence(sequence)
+
